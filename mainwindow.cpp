@@ -62,9 +62,10 @@ MainWindow::~MainWindow() {
 void
 MainWindow::onTimeToCheckTime() {
     now = QTime::currentTime();
+    ui->editTime->setText(now.toString());
     if(previousTime < noon && now >= noon) {
         //Send command to play
-        qDebug() << "Now !!!" << now.toString();
+        qDebug() << "Now !!!";
     }
     previousTime = now;
 }
