@@ -27,9 +27,13 @@ INCLUDEPATH += /usr/local/include/RF24
 
 
 
-SOURCES += main.cpp
+SOURCES += main.cpp \
+    RF24.cpp
 SOURCES += mainwindow.cpp
 
-HEADERS  += mainwindow.h
+HEADERS  += mainwindow.h \
+    nRF24L01.h \
+    RF24.h \
+    RF24_config.h
 
 FORMS    += mainwindow.ui
