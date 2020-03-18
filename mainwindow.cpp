@@ -3,6 +3,7 @@
 #include "pigpiod_if2.h"// The header for using GPIO pins on Raspberry
 #include <QDebug>
 #include <QSettings>
+#include <QThread>
 
 
 //////////////////////////
@@ -23,21 +24,14 @@ MainWindow::MainWindow(QWidget *parent)
     , pUi(new Ui::MainWindow)
     , previousTime(QTime::currentTime())
     , noon(QTime(12, 0, 0, 0))
-    , pinPaPower(23) // BCM 23: pin 16 in the 40 pins GPIO connector
-    , pinPlay(26)    // BCM 26: pin 37 in the 40 pins GPIO connector
+    , pinPaPower(26) // BCM 26: pin 37 in the 40 pins GPIO connector
+    , pinPlay(23)    // BCM 23: pin 16 in the 40 pins GPIO connector
 {
+    noon = QTime::currentTime().addSecs(30);
     pUi->setupUi(this);
 
     paPowerStatus = 0;
     playStatus    = 0;
-    if(paPowerStatus)
-        pUi->powerButton->setText("Power ON");
-    else
-        pUi->powerButton->setText("Power OFF");
-    if(playStatus)
-        pUi->playButton->setText("Play");
-    else
-        pUi->playButton->setText("Stop");
 
     gpioHostHandle = pigpio_start((char*)"localhost", (char*)"8888");
     if(gpioHostHandle >= 0) {
@@ -53,8 +47,6 @@ MainWindow::MainWindow(QWidget *parent)
             gpioHostHandle = -1;
             return;
         }
-        gpio_write(gpioHostHandle, pinPaPower, paPowerStatus);
-
         if(set_mode(gpioHostHandle, pinPlay, PI_OUTPUT) < 0) {
             pUi->statusBar->showMessage(QString("Unable to initialize GPIO%1 as Output")
                                        .arg(pinPlay));
@@ -67,17 +59,32 @@ MainWindow::MainWindow(QWidget *parent)
             gpioHostHandle = -1;
             return;
         }
-        gpio_write(gpioHostHandle, pinPlay, paPowerStatus);
     }
     else {
         pUi->statusBar->showMessage(QString("Unable to initialize the Pi GPIO."));
         return;
     }
+    pUi->editStartTime->setText(noon.toString());
 
     connect(&timerCheckTime, SIGNAL(timeout()),
             this, SLOT(onTimeToCheckTime()));
 
     timerCheckTime.start(1000);
+
+    gpio_write(gpioHostHandle, pinPaPower, 1-paPowerStatus);
+    gpio_write(gpioHostHandle, pinPlay,    1-playStatus);
+    QThread::msleep(100);
+    gpio_write(gpioHostHandle, pinPaPower, paPowerStatus);
+    gpio_write(gpioHostHandle, pinPlay,    playStatus);
+
+    if(paPowerStatus)
+        pUi->powerButton->setText("Power OFF");
+    else
+        pUi->powerButton->setText("Power ON");
+    if(playStatus)
+        pUi->playButton->setText("Stop");
+    else
+        pUi->playButton->setText("Play");
 }
 
 
@@ -100,8 +107,16 @@ MainWindow::closeEvent(QCloseEvent *event) {
 void
 MainWindow::onTimeToCheckTime() {
     now = QTime::currentTime();
-    pUi->editTime->setText(now.toString());
-    if(previousTime < noon && now >= noon) {
+    pUi->editCurrentTime->setText(now.toString());
+    if((paPowerStatus == 0) && now.secsTo(noon) < 10) {
+        paPowerStatus = 1;
+        gpio_write(gpioHostHandle, pinPaPower, paPowerStatus);
+        pUi->powerButton->setText("Power OFF");
+    }
+    if((previousTime < noon) && (now >= noon)) {
+        playStatus = 1;
+        gpio_write(gpioHostHandle, pinPlay, playStatus);
+        pUi->playButton->setText("Stop");
     }
     previousTime = now;
 }
@@ -112,9 +127,9 @@ MainWindow::on_powerButton_clicked() {
     paPowerStatus = 1 - paPowerStatus;
     gpio_write(gpioHostHandle, pinPaPower, paPowerStatus);
     if(paPowerStatus)
-        pUi->powerButton->setText("Power ON");
-    else
         pUi->powerButton->setText("Power OFF");
+    else
+        pUi->powerButton->setText("Power ON");
 }
 
 
@@ -123,7 +138,7 @@ MainWindow::on_playButton_clicked() {
     playStatus = 1 - playStatus;
     gpio_write(gpioHostHandle, pinPlay, playStatus);
     if(playStatus)
-        pUi->playButton->setText("Play");
-    else
         pUi->playButton->setText("Stop");
+    else
+        pUi->playButton->setText("Play");
 }
