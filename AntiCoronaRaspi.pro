@@ -1,4 +1,3 @@
-
 QT       += core
 QT       += gui
 
@@ -19,14 +18,12 @@ DEFINES += QT_DEPRECATED_WARNINGS
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 
-#LIBS += -lpigpiod_if2 # To include libpigpiod_if2.so from /usr/local/lib
+LIBS += -lpigpiod_if2 # To include libpigpiod_if2.so from /usr/local/lib
 
 
-SOURCES += main.cpp \
-    ledindicator.cpp
+SOURCES += main.cpp
 SOURCES += mainwindow.cpp
 
-HEADERS  += mainwindow.h \
-    ledindicator.h
+HEADERS  += mainwindow.h
 
 FORMS    += mainwindow.ui

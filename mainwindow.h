@@ -3,7 +3,7 @@
 #include <QMainWindow>
 #include <QTime>
 #include <QTimer>
-#include "ledindicator.h"
+#include "pigpiod_if2.h" // The header for using GPIO pins on Raspberry
 
 
 namespace Ui {
@@ -18,14 +18,25 @@ class MainWindow : public QMainWindow
 public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
+    void closeEvent(QCloseEvent *event);
 
 private slots:
     void onTimeToCheckTime();
+    void on_powerButton_clicked();
+    void on_playButton_clicked();
 
 private:
     Ui::MainWindow* pUi;
-    QTime now;
-    QTime previousTime;
-    QTime noon;
+
+    QTime  now;
+    QTime  previousTime;
+    QTime  noon;
     QTimer timerCheckTime;
+
+    int    gpioHostHandle;
+    int    pinPaPower;
+    int    pinPlay;
+
+    int    paPowerStatus;
+    int    playStatus;
 };
