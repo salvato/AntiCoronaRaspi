@@ -21,19 +21,12 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 #LIBS += -lpigpiod_if2 # To include libpigpiod_if2.so from /usr/local/lib
 
-LIBS += -lrf24
-
-INCLUDEPATH += /usr/local/include/RF24
-
-
 
 SOURCES += main.cpp \
-    RF24.cpp
+    ledindicator.cpp
 SOURCES += mainwindow.cpp
 
 HEADERS  += mainwindow.h \
-    nRF24L01.h \
-    RF24.h \
-    RF24_config.h
+    ledindicator.h
 
 FORMS    += mainwindow.ui
